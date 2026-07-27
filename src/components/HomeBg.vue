@@ -13,14 +13,18 @@ const canvasRef = ref(null)
 
 // WebGL 上下文和状态
 let animationId = null
+let ambientTimer = null
 let gl = null
 let program = null
 let texture = null
+let textureImage = null
+let imageAspect = 1.0
 let localRipples = []
 
 // 缓存的 uniform 位置（避免每帧查询）
 let uTimeLoc = null
 let uResolutionLoc = null
+let uCoverRatioLoc = null
 let uRippleCountLoc = null
 let uRippleCentersLoc = []
 let uRippleTimesLoc = []
@@ -43,6 +47,7 @@ const fragmentSrc = `
   uniform sampler2D u_texture;
   uniform float u_time;
   uniform vec2 u_resolution;
+  uniform vec2 u_coverRatio;
   uniform int u_rippleCount;
   uniform vec2 u_rippleCenters[${MAX_RIPPLES}];
   uniform float u_rippleTimes[${MAX_RIPPLES}];
@@ -51,6 +56,9 @@ const fragmentSrc = `
   void main() {
     vec2 uv = vec2(v_uv.x, 1.0 - v_uv.y);
     vec2 aspect = vec2(u_resolution.x / u_resolution.y, 1.0);
+
+    // object-fit: cover —— 保持图片比例、居中裁切，避免在不同屏幕比例下被压扁
+    vec2 baseUv = (uv - 0.5) * u_coverRatio + 0.5;
 
     vec2 displacement = vec2(0.0);
 
@@ -70,7 +78,7 @@ const fragmentSrc = `
       displacement += normalize(uv - center + 0.0001) * wave;
     }
 
-    gl_FragColor = texture2D(u_texture, clamp(uv + displacement, 0.001, 0.999));
+    gl_FragColor = texture2D(u_texture, clamp(baseUv + displacement, 0.001, 0.999));
   }
 `
 
@@ -124,6 +132,7 @@ const initGL = (canvas) => {
   // 缓存所有 uniform 位置
   uTimeLoc = gl.getUniformLocation(program, 'u_time')
   uResolutionLoc = gl.getUniformLocation(program, 'u_resolution')
+  uCoverRatioLoc = gl.getUniformLocation(program, 'u_coverRatio')
   uRippleCountLoc = gl.getUniformLocation(program, 'u_rippleCount')
 
   for (let i = 0; i < MAX_RIPPLES; i++) {
@@ -164,6 +173,7 @@ const loadTexture = (gl, url) => {
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+      textureImage = image
       resolve(tex)
     }
 
@@ -192,7 +202,22 @@ const resize = (canvas) => {
 
   if (gl) {
     gl.viewport(0, 0, canvas.width, canvas.height)
+    updateCoverRatio()
   }
+}
+
+/**
+ * 计算并设置 object-fit: cover 的 UV 缩放比例
+ * 让背景图始终填满画布、保持原始比例、居中裁切溢出部分（手机/电脑都不会被压扁）
+ */
+function updateCoverRatio() {
+  if (!gl || !uCoverRatioLoc) return
+  const cw = canvasRef.value?.width || 1
+  const ch = canvasRef.value?.height || 1
+  const canvasAspect = cw / ch
+  const rx = Math.min(canvasAspect / imageAspect, 1.0)
+  const ry = Math.min(imageAspect / canvasAspect, 1.0)
+  gl.uniform2f(uCoverRatioLoc, rx, ry)
 }
 
 /**
@@ -284,11 +309,24 @@ onMounted(async () => {
   gl.activeTexture(gl.TEXTURE0)
   gl.bindTexture(gl.TEXTURE_2D, texture)
   gl.uniform1i(gl.getUniformLocation(program, 'u_texture'), 0)
+
+  // 记录图片真实比例，启用居中裁切（cover），避免被拉伸压扁
+  if (textureImage) {
+    imageAspect = textureImage.width / textureImage.height
+    updateCoverRatio()
+  }
+
+  // 环境涟漪：每隔一段时间自动生成一圈柔和涟漪，让水面始终有呼吸感（修复「涟漪效果消失」观感）
+  ambientTimer = setInterval(() => {
+    addRipple(Math.random(), Math.random(), 0.02)
+  }, 3500)
+
   console.log('[HomeBg] WebGL ready, texture loaded')
 })
 
 onUnmounted(() => {
   if (animationId) cancelAnimationFrame(animationId)
+  if (ambientTimer) clearInterval(ambientTimer)
   if (gl) {
     gl.getExtension('WEBGL_lose_context')?.loseContext()
   }

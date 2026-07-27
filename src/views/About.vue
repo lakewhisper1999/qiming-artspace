@@ -40,20 +40,58 @@ const aboutContentLines = computed(() => {
   return aboutContent.value.split('\n').filter(line => line.trim())
 })
 
-onMounted(async () => {
+// 默认值（与后端 init.sql 中的初始值保持一致，作为兜底）
+const DEFAULT_SUBTITLE = '视觉设计爱好者+码农'
+const DEFAULT_CONTENT = '「启明」是个人创作空间，希望制作成一个方便整理工程的网站。\n每一件作品都是我某个时间切片里的映象\n我希望过去可以点亮未来。'
+
+// 加载优先级：
+// 1) 静态导出文件 data/site-config.json —— 部署到 Cloudflare Pages（无后端）时以此为准，
+//    与管理后台编辑的是同一份数据，重新导出 + 重新部署即可同步。
+// 2) 本地开发连后端时走实时接口 /api/public/site-config —— 与后台管理一致。
+// 3) 都失败则用默认值兜底。
+async function loadSiteConfig() {
+  // 1) 静态文件优先（production 部署走这里）
+  try {
+    const res = await fetch('data/site-config.json')
+    if (res.ok) {
+      const cfg = await res.json()
+      if (cfg && (cfg.about_subtitle !== undefined || cfg.about_content !== undefined)) {
+        return cfg
+      }
+    }
+  } catch (e) {
+    console.warn('[About] 读取静态 site-config.json 失败，尝试实时接口', e)
+  }
+  // 2) 本地开发：实时接口（与后台管理同源）
   try {
     const res = await fetch('/api/public/site-config')
     const json = await res.json()
     const list = json.data || []
-    const subtitle = list.find(c => c.configKey === 'about_subtitle')
-    const content = list.find(c => c.configKey === 'about_content')
-    if (subtitle) aboutSubtitle.value = subtitle.configValue
-    if (content) aboutContent.value = content.configValue
+    const cfg = {}
+    for (const c of list) cfg[c.configKey] = c.configValue
+    return cfg
   } catch (e) {
     console.warn('[About] 加载站点配置失败，使用默认值', e)
-    aboutSubtitle.value = '视觉设计爱好者+码农'
-    aboutContent.value = '「启明」是个人创作空间，希望制作成一个方便整理工程的网站。\n每一件作品都是我某个时间切片里的映象\n我希望过去可以点亮未来。'
   }
+  return null
+}
+
+function applyConfig(cfg) {
+  if (!cfg) {
+    aboutSubtitle.value = DEFAULT_SUBTITLE
+    aboutContent.value = DEFAULT_CONTENT
+    return
+  }
+  aboutSubtitle.value = (cfg.about_subtitle !== undefined && cfg.about_subtitle !== null)
+    ? cfg.about_subtitle
+    : DEFAULT_SUBTITLE
+  aboutContent.value = (cfg.about_content !== undefined && cfg.about_content !== null)
+    ? cfg.about_content
+    : DEFAULT_CONTENT
+}
+
+onMounted(async () => {
+  applyConfig(await loadSiteConfig())
 })
 
 const skills = [

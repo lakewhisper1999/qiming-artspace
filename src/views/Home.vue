@@ -42,7 +42,7 @@ const handleAddMark = (x, y) => {
   if (homeBgRef.value?.addRipple) {
     const normX = x / window.innerWidth
     const normY = 1 - y / window.innerHeight
-    homeBgRef.value.addRipple(normX, normY, 0.03)
+    homeBgRef.value.addRipple(normX, normY, 0.045)
   }
 }
 
