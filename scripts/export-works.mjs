@@ -4,6 +4,7 @@
 // 作用：连本地 MySQL → 读 artwork / article / category 表 →
 //       把作品引用的图片复制到前端 public/media/ 目录 →
 //       生成 public/data/works.json（前端 Artwork/Article 直接读）
+//       生成 public/data/site-config.json（前端「关于」页直接读，含关于我等）
 //
 // 核心思路：媒体不依赖 R2 / OSS 等第三方，图片直接打进前端构建产物
 // （dist/media/），由 Cloudflare Pages 一起托管 —— 零费用、零绑卡。
@@ -166,6 +167,14 @@ async function main() {
   // 如后续需要，可把视频传 B站并嵌播放器，或等有了 R2 / 对象存储再接回。
   const videos = []
 
+  // —— 站点配置（关于我等）：静态站「关于」页直接读，与后台管理同源 ——
+  // 这样部署后的前端展示的「关于我」与管理后台编辑的是同一份数据，
+  // 重新导出 + 重新部署即可同步（与作品/图文一致）。
+  const [cfgRows] = await conn.execute('SELECT config_key, config_value FROM site_config')
+  const siteConfig = {}
+  for (const r of cfgRows) siteConfig[r.config_key] = r.config_value
+  console.log(`✓ 站点配置 ${cfgRows.length} 项已读取`)
+
   await conn.end()
 
   const out = {
@@ -182,6 +191,11 @@ async function main() {
   console.log('✓ 已生成', outPath)
   console.log('  作品', artworks.length, '/ 图文', articles.length, '/ 视频', videos.length)
   console.log('  媒体已复制到 public/media/（npm run build 后随 dist 一起部署到 Pages）')
+
+  // 站点配置（关于我等）单独输出，供「关于」页在静态部署下读取，无需后端
+  const cfgPath = path.join(outDir, 'site-config.json')
+  await writeFile(cfgPath, JSON.stringify(siteConfig, null, 2), 'utf-8')
+  console.log('✓ 已生成', cfgPath, '（关于我等静态配置，前端关于页直接读）')
 }
 
 main().catch((e) => {
