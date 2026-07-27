@@ -1,0 +1,119 @@
+/* ============================================
+   启明艺术空间 — 全局样式
+   设计原则：极简黑白灰 · Impeccable OKLCH 色彩系统
+   参考：ignoredone.space
+   ============================================ */
+
+:root {
+  /* 基础黑白灰（OKLCH 冷调中性色） */
+  --bg:        oklch(98% 0 0);
+  --bg-alt:    oklch(96% 0.003 250);
+  --surface:   oklch(100% 0 0);
+  --text:      oklch(12% 0 0);
+  --text-secondary: oklch(40% 0 0);
+  --text-tertiary:  oklch(60% 0 0);
+  --border:    oklch(88% 0 0);
+  --border-light: oklch(93% 0 0);
+
+  /* 唯一彩色 — 作品集浅黄背景 */
+  --artwork-bg:     #f9f6e8;
+  --artwork-bg-alt: #f5f2e0;
+
+  /* 玻璃效果 */
+  --glass-bg:      rgba(255, 255, 255, 0.65);
+  --glass-border:  rgba(255, 255, 255, 0.5);
+  --glass-shadow:  rgba(0, 0, 0, 0.08);
+  --glass-blur:    20px;
+
+  /* 水波纹 */
+  --ripple-color:  oklch(25% 0 0 / 0.15);
+
+  /* 间距系统（基于 4pt） */
+  --space-xs:  4px;
+  --space-sm:  8px;
+  --space-md:  16px;
+  --space-lg:  24px;
+  --space-xl:  32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+
+  /* 字体 */
+  --font-display: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+  --font-body:    'PingFang SC', 'Microsoft YaHei', -apple-system, system-ui, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  overflow-x: hidden;
+  font-size: 16px;
+}
+
+.container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* === 排版 === */
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+p {
+  color: var(--text-secondary);
+}
+
+/* === 链接 === */
+a {
+  color: var(--text);
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+a:hover { opacity: 0.65; }
+
+/* === 按钮 === */
+button {
+  font-family: var(--font-body);
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+/* === 图片 === */
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* === 滚动条（极简） === */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: oklch(75% 0 0);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(60% 0 0);
+}
+
+/* === 动效可访问性 === */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  html { scroll-behavior: auto; }
+}
