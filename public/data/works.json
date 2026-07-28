@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-27T15:07:40.522Z",
+  "generatedAt": "2026-07-28T13:22:30.149Z",
   "categories": [
     {
       "id": 1,
@@ -68,28 +68,13 @@
       "id": 21,
       "title": "伊索尔德仿ZZZ运镜",
       "description": "模仿了教程ZZZ运镜制作的半成品",
-      "coverUrl": "/media/b5e29b04bb5b43b78cbb49e612d22b43.mp4",
+      "coverUrl": "/media/0f52761c16a5431f9651dbc421f4e286.png",
       "imageUrls": null,
-      "videoEmbed": null,
+      "videoEmbed": "https://player.bilibili.com/player.html?bvid=BV1No3v63EoV&page=1&high_quality=1&danmaku=0",
       "categoryName": "平面及动效作品",
       "categoryId": 1,
       "createdAt": "2026-07-03 11:05:36",
       "viewCount": 3,
-      "downloadUrl": null,
-      "fileSize": 0,
-      "downloadCount": 0
-    },
-    {
-      "id": 20,
-      "title": "叶瞬光运镜",
-      "description": "使用AI制作live2D，AE中添加抠图，打光和运镜",
-      "coverUrl": null,
-      "imageUrls": null,
-      "videoEmbed": null,
-      "categoryName": "平面及动效作品",
-      "categoryId": 1,
-      "createdAt": "2026-07-03 09:45:13",
-      "viewCount": 2,
       "downloadUrl": null,
       "fileSize": 0,
       "downloadCount": 0
@@ -158,9 +143,9 @@
       "id": 15,
       "title": "若叶睦机能排版讲解",
       "description": "纯画面及流程分享",
-      "coverUrl": null,
+      "coverUrl": "/media/01043f5470c446eeb0800abb1074ca42.png",
       "imageUrls": null,
-      "videoEmbed": null,
+      "videoEmbed": "https://player.bilibili.com/player.html?bvid=BV1Dy3c6HEEG&page=1&high_quality=1&danmaku=0",
       "categoryName": "平面及动效作品",
       "categoryId": 1,
       "createdAt": "2026-07-03 09:35:08",
@@ -200,21 +185,6 @@
       "downloadCount": 0
     },
     {
-      "id": 12,
-      "title": "漂流少年动效1-8",
-      "description": "漂流少年动效1-8，难点在于节奏控制和精细度、完整度",
-      "coverUrl": null,
-      "imageUrls": null,
-      "videoEmbed": null,
-      "categoryName": "平面及动效作品",
-      "categoryId": 1,
-      "createdAt": "2026-07-03 09:30:44",
-      "viewCount": 0,
-      "downloadUrl": null,
-      "fileSize": 0,
-      "downloadCount": 0
-    },
-    {
       "id": 11,
       "title": "漂流少年排版1-8",
       "description": "漂流少年系列平面排版，难点在色彩和主题搭配",
@@ -232,16 +202,16 @@
     {
       "id": 9,
       "title": "漂流少年动效完全体",
-      "description": "费心费力的5天速成作，使用AE原生效果制作mg动效",
-      "coverUrl": null,
+      "description": "费心费力的作品，使用AE原生效果制作mg动效",
+      "coverUrl": "/media/660154d9448a4846901c3a77281ac690.png",
       "imageUrls": null,
-      "videoEmbed": null,
+      "videoEmbed": "https://player.bilibili.com/player.html?bvid=BV1mt3F6VEVx&page=1&high_quality=1&danmaku=0",
       "categoryName": "平面及动效作品",
       "categoryId": 1,
       "createdAt": "2026-07-03 08:46:23",
       "viewCount": 3,
       "downloadUrl": null,
-      "fileSize": 0,
+      "fileSize": 1,
       "downloadCount": 0
     },
     {
