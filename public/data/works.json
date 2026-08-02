@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-28T13:22:30.149Z",
+  "generatedAt": "2026-08-02T15:28:29.975Z",
   "categories": [
     {
       "id": 1,
@@ -19,6 +19,51 @@
     }
   ],
   "artworks": [
+    {
+      "id": 32,
+      "title": "伊索尔德音乐播放动效",
+      "description": "简单制作了动效的伊索尔德专辑设计",
+      "coverUrl": "/media/953f81adc55c43ddab928e5862ce768c.png",
+      "imageUrls": null,
+      "videoEmbed": "https://player.bilibili.com/player.html?bvid=BV1Yr3v6HEj1&page=1&high_quality=1&danmaku=0",
+      "categoryName": "平面及动效作品",
+      "categoryId": 1,
+      "createdAt": "2026-08-02 21:40:26",
+      "viewCount": 0,
+      "downloadUrl": null,
+      "fileSize": 1,
+      "downloadCount": 0
+    },
+    {
+      "id": 31,
+      "title": "仿TGX社宣传动画",
+      "description": "模仿风格的前期作品之一，很有纪念价值",
+      "coverUrl": "/media/0fcd5adc985b4d00b996d4010497d299.png",
+      "imageUrls": null,
+      "videoEmbed": "https://player.bilibili.com/player.html?bvid=BV1Eb3v68EUF&page=1&high_quality=1&danmaku=0",
+      "categoryName": "平面及动效作品",
+      "categoryId": 1,
+      "createdAt": "2026-08-02 21:39:30",
+      "viewCount": 0,
+      "downloadUrl": null,
+      "fileSize": 1,
+      "downloadCount": 0
+    },
+    {
+      "id": 30,
+      "title": "漂流少年工程讲解",
+      "description": "简单讲解了漂流少年的工程难点",
+      "coverUrl": "/media/de4bd4cd6b3140cbab41365af51528e1.png",
+      "imageUrls": null,
+      "videoEmbed": "https://player.bilibili.com/player.html?bvid=BV1FAGK6SEc5&page=1&high_quality=1&danmaku=0",
+      "categoryName": "平面及动效作品",
+      "categoryId": 1,
+      "createdAt": "2026-08-02 21:36:38",
+      "viewCount": 0,
+      "downloadUrl": "https://pan.quark.cn/s/9167ae4bb72d?pwd=hPg2",
+      "fileSize": 1,
+      "downloadCount": 0
+    },
     {
       "id": 26,
       "title": "台历系列6月素材整理",
@@ -50,21 +95,6 @@
       "downloadCount": 0
     },
     {
-      "id": 22,
-      "title": "校律委宣传片",
-      "description": "模仿风格的第一件mg作品，颇有纪念价值",
-      "coverUrl": null,
-      "imageUrls": null,
-      "videoEmbed": null,
-      "categoryName": "平面及动效作品",
-      "categoryId": 1,
-      "createdAt": "2026-07-03 11:07:36",
-      "viewCount": 2,
-      "downloadUrl": null,
-      "fileSize": 0,
-      "downloadCount": 0
-    },
-    {
       "id": 21,
       "title": "伊索尔德仿ZZZ运镜",
       "description": "模仿了教程ZZZ运镜制作的半成品",
@@ -75,21 +105,6 @@
       "categoryId": 1,
       "createdAt": "2026-07-03 11:05:36",
       "viewCount": 3,
-      "downloadUrl": null,
-      "fileSize": 0,
-      "downloadCount": 0
-    },
-    {
-      "id": 19,
-      "title": "伊索尔德音乐播放动效",
-      "description": "简单制作了动效",
-      "coverUrl": null,
-      "imageUrls": null,
-      "videoEmbed": null,
-      "categoryName": "平面及动效作品",
-      "categoryId": 1,
-      "createdAt": "2026-07-03 09:40:50",
-      "viewCount": 1,
       "downloadUrl": null,
       "fileSize": 0,
       "downloadCount": 0
@@ -150,7 +165,7 @@
       "categoryId": 1,
       "createdAt": "2026-07-03 09:35:08",
       "viewCount": 0,
-      "downloadUrl": null,
+      "downloadUrl": "https://pan.quark.cn/s/e817b3f05415?pwd=TXgd",
       "fileSize": 0,
       "downloadCount": 0
     },
@@ -224,7 +239,7 @@
       "categoryName": "学习工程",
       "categoryId": 3,
       "createdAt": "2026-07-03 08:42:04",
-      "viewCount": 0,
+      "viewCount": 1,
       "downloadUrl": null,
       "fileSize": 0,
       "downloadCount": 0
@@ -239,7 +254,7 @@
       "categoryName": "学习工程",
       "categoryId": 3,
       "createdAt": "2026-07-03 08:41:27",
-      "viewCount": 0,
+      "viewCount": 1,
       "downloadUrl": null,
       "fileSize": 0,
       "downloadCount": 0
