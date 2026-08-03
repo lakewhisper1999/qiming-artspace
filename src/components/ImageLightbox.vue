@@ -47,6 +47,7 @@
           :src="currentMedia"
           :alt="title"
           class="lightbox-image"
+          decoding="async"
           @load="loaded = true"
           @error="loaded = true"
         />
@@ -57,6 +58,7 @@
           class="lightbox-video"
           controls
           autoplay
+          decoding="async"
           @loadeddata="loaded = true"
           @error="loaded = true"
         />

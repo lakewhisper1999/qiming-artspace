@@ -3,10 +3,14 @@
     <!-- 页面头部：SECTION 标签 + 大标题 + 操作按钮（参考截图排版） -->
     <section class="page-header">
       <div class="container">
-        <span class="section-label">SECTION</span>
-        <h1 class="page-title">{{ pageTitleLine1 }}<br/>{{ pageTitleLine2 }}</h1>
+        <RevealText tag="span" class="section-label" :text="'SECTION'" />
+        <h1 class="page-title">
+          <RevealText tag="span" :text="pageTitleLine1" />
+          <br/>
+          <RevealText tag="span" :text="pageTitleLine2" :delay="0.15" />
+        </h1>
         <div class="header-actions">
-          <button class="header-btn">{{ headerBtnText }}</button>
+          <button class="header-btn" v-magnetic="0.25">{{ headerBtnText }}</button>
         </div>
       </div>
     </section>
@@ -19,32 +23,47 @@
             :key="cat"
             class="filter-btn"
             :class="{ active: activeCategory === cat }"
+            v-magnetic="0.3"
             @click="selectCategory(cat)"
           >{{ cat }}</button>
         </div>
       </div>
 
       <div class="grid-wide">
-        <div class="artwork-grid">
-          <ArtworkCard
-            v-for="art in filteredArtworks"
-            :key="art.id"
-            :artwork="art"
-            @view="handleView"
-            @download="handleDownload"
-          />
+        <!-- 加载态：骨架屏微光占位（生产级 loading 体验） -->
+        <div v-if="loading" class="skeleton-grid">
+          <div v-for="n in 8" :key="n" class="skeleton-card">
+            <div class="skeleton-img shimmer"></div>
+            <div class="skeleton-tag shimmer"></div>
+            <div class="skeleton-line shimmer"></div>
+            <div class="skeleton-line short shimmer"></div>
+          </div>
         </div>
 
-        <div v-if="filteredArtworks.length === 0" class="empty">
-          <p>该分类下暂无作品。</p>
-        </div>
+        <!-- 数据态 -->
+        <template v-else>
+          <div class="artwork-grid">
+            <ArtworkCard
+              v-for="art in filteredArtworks"
+              :key="art.id"
+              :artwork="art"
+              @view="handleView"
+              @download="handleDownload"
+            />
+          </div>
+
+          <div v-if="filteredArtworks.length === 0" class="empty">
+            <div class="empty-glyph">◌</div>
+            <p>该分类下暂无作品。</p>
+          </div>
+        </template>
       </div>
     </section>
 
     <ImageLightbox
       v-model:visible="lightboxVisible"
       :media-list="lightboxMediaList"
-      :image-url="lightboxArtwork?.coverUrl"
+      :image-url="lightboxArtwork?.coverLargeUrl || lightboxArtwork?.coverUrl"
       :title="lightboxArtwork?.title"
     />
 
@@ -68,6 +87,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ArtworkCard from '../components/ArtworkCard.vue'
 import ImageLightbox from '../components/ImageLightbox.vue'
+import RevealText from '../components/RevealText.vue'
 // 本地 mock 数据：当后端不可用时（如纯静态部署）兜底展示
 import { artworks as mockArtworks, categories as mockCategories } from '../mock/artworks'
 // 静态部署数据加载器：优先读 public/data/works.json（真实作品）
@@ -104,6 +124,9 @@ const mapArtwork = (a) => ({
   title: a.title,
   description: a.description,
   coverUrl: a.coverUrl,
+  coverThumbUrl: a.coverThumbUrl || null,
+  coverLargeUrl: a.coverLargeUrl || null,
+  coverWidth: a.coverWidth || null,
   imageUrls: a.imageUrls,
   category: a.categoryName || '未分类',
   date: formatDate(a.createdAt),
@@ -196,7 +219,7 @@ const handleView = async (artwork) => {
     videoModalVisible.value = true
     return
   }
-  const cover = artwork?.coverUrl
+  const cover = artwork?.coverLargeUrl || artwork?.coverUrl
   if (!cover) {
     alert('该资源暂无可预览内容。')
     return
@@ -361,13 +384,59 @@ watch(() => route.query.category, (newCat) => {
   gap: 1.5rem;
 }
 
-/* ===== 空状态 ===== */
+/* ===== 骨架屏 ===== */
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+.skeleton-card {
+  background: var(--surface);
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  padding-bottom: 1.25rem;
+}
+.skeleton-img {
+  width: 100%;
+  aspect-ratio: 3/2;
+  background-color: #eae5d8;
+}
+.skeleton-tag {
+  display: inline-block;
+  width: 72px;
+  height: 22px;
+  border-radius: 999px;
+  margin: 1.1rem 1.3rem 0.7rem;
+  background-color: #eae5d8;
+}
+.skeleton-line {
+  height: 14px;
+  border-radius: 6px;
+  margin: 0 1.3rem 0.6rem;
+  background-color: #eae5d8;
+}
+.skeleton-line.short { width: 55%; }
+
+/* ===== 空状态（带轻微入场与呼吸，避免“死板”） ===== */
 .empty {
   text-align: center;
   color: var(--text-secondary);
-  opacity: 0.5;
+  opacity: 0.6;
   padding: 5rem 0;
   font-size: 1.05rem;
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.empty-glyph {
+  font-size: 3rem;
+  line-height: 1;
+  margin-bottom: 1rem;
+  animation: emptyPulse 2.4s ease-in-out infinite;
+}
+@keyframes emptyPulse {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50%      { opacity: 0.7;  transform: scale(1.08); }
 }
 
 /* ===== 视频播放弹窗 ===== */

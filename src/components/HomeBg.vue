@@ -1,7 +1,7 @@
 <template>
   <div class="home-bg-wrapper">
-    <canvas ref="canvasRef" class="water-canvas"></canvas>
-    <div class="bg-fallback"></div>
+    <canvas v-if="!useFallback" ref="canvasRef" class="water-canvas"></canvas>
+    <div v-else class="bg-fallback" role="img" aria-label="启明艺术空间背景"></div>
   </div>
 </template>
 
@@ -10,6 +10,35 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { MAX_RIPPLES, RIPPLE_LIFETIME, SHADER_PARAMS } from '../constants/ripple.js'
 
 const canvasRef = ref(null)
+
+// 是否「减少动态效果」（系统级无障碍偏好，也利于省电）
+const reduceMotion = typeof window !== 'undefined' &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+// 是否移动端（触屏 / 小屏 / 移动 UA）—— 移动端 GPU 弱、易丢上下文，直接走静态图
+const isMobileDevice = () => {
+  if (typeof window === 'undefined') return false
+  const coarse = window.matchMedia('(pointer: coarse)').matches
+  const small = window.matchMedia('(max-width: 820px)').matches
+  const ua = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent)
+  return coarse || small || ua
+}
+
+// 浏览器是否支持 WebGL（创建离屏 canvas 试探，避免某些设备初始化即报错）
+const isWebglSupported = () => {
+  if (typeof window === 'undefined') return false
+  try {
+    const c = document.createElement('canvas')
+    return !!(window.WebGLRenderingContext && (c.getContext('webgl') || c.getContext('experimental-webgl')))
+  } catch (e) {
+    return false
+  }
+}
+// 移动端 / 不支持 WebGL / 上下文丢失 → 显示完整背景图（home-bg.png），避免渲染失败与高耗电
+const useFallback = ref(false)
+if (typeof window !== 'undefined') {
+  useFallback.value = isMobileDevice() || !isWebglSupported()
+}
 
 // WebGL 上下文和状态
 let animationId = null
@@ -20,6 +49,18 @@ let texture = null
 let textureImage = null
 let imageAspect = 1.0
 let localRipples = []
+
+// 鼠标连续水痕状态（平滑跟随光标，强度随移动速度变化，停下自然消散 —— 避免离散波纹的顿挫感）
+let mouseTarget = { x: 0.5, y: 0.5 }
+let mouseSmooth = { x: 0.5, y: 0.5 }
+let mouseVel = 0
+let mouseActive = 0
+let mouseInside = false
+let pointerMoveHandler = null
+let pointerLeaveHandler = null
+let contextLostHandler = null
+let uMouseLoc = null
+let uMouseStrengthLoc = null
 
 // 缓存的 uniform 位置（避免每帧查询）
 let uTimeLoc = null
@@ -52,6 +93,35 @@ const fragmentSrc = `
   uniform vec2 u_rippleCenters[${MAX_RIPPLES}];
   uniform float u_rippleTimes[${MAX_RIPPLES}];
   uniform float u_rippleStrengths[${MAX_RIPPLES}];
+  uniform vec2 u_mouse;            // 平滑跟随后的光标位置（uv）
+  uniform float u_mouseStrength;   // 水痕强度（随移动速度变化，停下趋近 0）
+
+  // 分形杂色（值噪声 + fbm）—— 给高光叠加水面微光闪烁，模拟真实水面阵阵反光
+  float hash(vec2 p) {
+    p = fract(p * vec2(123.34, 456.21));
+    p += dot(p, p + 45.32);
+    return fract(p.x * p.y);
+  }
+  float vnoise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    float a = hash(i);
+    float b = hash(i + vec2(1.0, 0.0));
+    float c = hash(i + vec2(0.0, 1.0));
+    float d = hash(i + vec2(1.0, 1.0));
+    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+  }
+  float fbm(vec2 p) {
+    float v = 0.0;
+    float amp = 0.5;
+    for (int i = 0; i < 4; i++) {
+      v += amp * vnoise(p);
+      p *= 2.0;
+      amp *= 0.5;
+    }
+    return v;
+  }
 
   void main() {
     vec2 uv = vec2(v_uv.x, 1.0 - v_uv.y);
@@ -61,24 +131,64 @@ const fragmentSrc = `
     vec2 baseUv = (uv - 0.5) * u_coverRatio + 0.5;
 
     vec2 displacement = vec2(0.0);
+    vec2 grad = vec2(0.0);  // 涟漪高度场梯度，用于构造水面法线/反光
+    float field = 0.0;      // 扰动强度场（径向衰减：中心强、边缘柔），用于调制高光
 
-    // 响应显式触发的扩散涟漪（点击 / 停留）
+    // 响应显式触发的扩散涟漪（点击 / 停留 / 鼠标跟随）
     for (int i = 0; i < ${MAX_RIPPLES}; i++) {
       if (i >= u_rippleCount) break;
       vec2 center = u_rippleCenters[i];
       center.y = 1.0 - center.y;
       float t = u_time - u_rippleTimes[i];
       if (t < 0.0 || t > 2.5) continue;
-      float dist = length((uv - center) * aspect);
-      // 降低频率、衰减更快，使涟漪更柔和
-      float wave = sin(dist * ${SHADER_PARAMS.frequency.toFixed(1)} - t * ${SHADER_PARAMS.speed.toFixed(1)}) 
-                   * exp(-dist * ${SHADER_PARAMS.distanceDecay.toFixed(1)}) 
-                   * exp(-t * ${SHADER_PARAMS.timeDecay.toFixed(1)}) 
-                   * u_rippleStrengths[i];
-      displacement += normalize(uv - center + 0.0001) * wave;
+      vec2 d = (uv - center) * aspect;
+      float dist = length(d);
+      float env = exp(-dist * ${SHADER_PARAMS.distanceDecay.toFixed(1)}) * exp(-t * ${SHADER_PARAMS.timeDecay.toFixed(1)});
+      float wave = sin(dist * ${SHADER_PARAMS.frequency.toFixed(1)} - t * ${SHADER_PARAMS.speed.toFixed(1)}) * env * u_rippleStrengths[i];
+      vec2 dir = normalize(uv - center + 0.0001);
+      displacement += dir * wave;
+      // 波高对 uv 的偏导（沿 dir 方向），用于构造水面法线
+      float dWave = cos(dist * ${SHADER_PARAMS.frequency.toFixed(1)} - t * ${SHADER_PARAMS.speed.toFixed(1)}) * ${SHADER_PARAMS.frequency.toFixed(1)} * env * u_rippleStrengths[i];
+      grad += dir * dWave;
+      field += env * u_rippleStrengths[i];
     }
 
-    gl_FragColor = texture2D(u_texture, clamp(baseUv + displacement, 0.001, 0.999));
+    // 鼠标连续跟随水痕：宽幅 + 低频 + 慢速 → 像水面被拖动拉出的顺滑波纹，而非生硬窄划痕
+    vec2 m = u_mouse;
+    m.y = 1.0 - m.y;
+    vec2 md = (uv - m) * aspect;
+    float md2 = length(md);
+    float ring = exp(-md2 * 3.0);                       // 更宽的水痕范围，消除「阻塞感」
+    field += u_mouseStrength * ring;
+    float mwave = sin(md2 * 10.0 - u_time * 2.2);       // 低频 + 慢速演化 → 顺滑水波
+    float wake = u_mouseStrength * ring * mwave;
+    vec2 mdir = normalize(uv - m + 0.0001);
+    displacement += mdir * wake;
+    // 水痕对 uv 的偏导，并入梯度参与反光（与上面的频率/速度严格一致）
+    float dWake = u_mouseStrength * ring * (cos(md2 * 10.0 - u_time * 2.2) * 10.0 - sin(md2 * 10.0 - u_time * 2.2) * 3.0);
+    grad += mdir * dWake;
+
+    // 水面反光高光：涟漪梯度 → 法线 → 半程向量高光，制造 3D 立体水感（克制、柔和）
+    vec3 N = normalize(vec3(-grad * 1.6, 1.0));
+    vec3 L = normalize(vec3(0.4, 0.7, 0.85));
+    vec3 V = vec3(0.0, 0.0, 1.0);
+    vec3 H = normalize(L + V);
+    float spec = pow(max(dot(N, H), 0.0), 16.0);
+
+    // 分形杂色微光：随时间缓慢流动（演化） + 正弦循环衰减，模拟真实水面阵阵闪烁的微光
+    vec2 nuv = uv * 7.0 + vec2(u_time * 0.06, u_time * 0.04);
+    float n = fbm(nuv);
+    float decay = 0.5 + 0.5 * sin(u_time * 0.22);          // 0..1 缓慢循环呼吸（模拟衰减）
+    float glint = pow(n, 3.0) * decay;                       // 锐化亮点 + 循环衰减
+
+    // 高光径向衰减：field 是扰动强度场（涟漪/水痕中心最强、随距离平滑趋零）
+    // → 高光只在扰动处显现，中心亮、边缘柔，静止水面保持平静
+    // 衰减放缓（0.5→0.2）：扰动边缘也能带出微光，不再「戛然而止」
+    float fieldSoft = smoothstep(0.0, 0.2, clamp(field * 2.4, 0.0, 1.0));
+    // 基础高光与分形微光均调强（spec 0.16→0.30，glint 0.10→0.16），更贴近真实水面反光
+    vec3 highlight = (spec * 0.30 + glint * 0.16) * vec3(0.85, 0.92, 1.0) * fieldSoft;
+
+    gl_FragColor = texture2D(u_texture, clamp(baseUv + displacement, 0.001, 0.999)) + vec4(highlight, 0.0);
   }
 `
 
@@ -134,6 +244,8 @@ const initGL = (canvas) => {
   uResolutionLoc = gl.getUniformLocation(program, 'u_resolution')
   uCoverRatioLoc = gl.getUniformLocation(program, 'u_coverRatio')
   uRippleCountLoc = gl.getUniformLocation(program, 'u_rippleCount')
+  uMouseLoc = gl.getUniformLocation(program, 'u_mouse')
+  uMouseStrengthLoc = gl.getUniformLocation(program, 'u_mouseStrength')
 
   for (let i = 0; i < MAX_RIPPLES; i++) {
     uRippleCentersLoc[i] = gl.getUniformLocation(program, `u_rippleCenters[${i}]`)
@@ -243,6 +355,18 @@ const render = (time) => {
   const t = time * 0.001
   cleanupRipples(t)
 
+  // 平滑跟随光标：每帧把平滑点拉向目标点，按「本帧实际位移」估算速度，水痕强度随之增减，停下自然消散
+  const px = mouseSmooth.x, py = mouseSmooth.y
+  mouseSmooth.x += (mouseTarget.x - mouseSmooth.x) * 0.5
+  mouseSmooth.y += (mouseTarget.y - mouseSmooth.y) * 0.5
+  const frameSpeed = Math.hypot(mouseSmooth.x - px, mouseSmooth.y - py)
+  mouseVel += (frameSpeed - mouseVel) * 0.2
+  const targetA = mouseInside ? Math.min(mouseVel * 25.0, 1.0) : 0.0
+  mouseActive += (targetA - mouseActive) * 0.08
+  // 鼠标位置：x 不翻，y 已在 pointermove 中预翻（1 - y/H），与点击涟漪同一坐标系、严格对齐光标
+  if (uMouseLoc) gl.uniform2f(uMouseLoc, mouseSmooth.x, mouseSmooth.y)
+  if (uMouseStrengthLoc) gl.uniform1f(uMouseStrengthLoc, mouseActive * 0.045)
+
   // 使用缓存的 uniform 位置
   gl.uniform1f(uTimeLoc, t)
   gl.uniform2f(uResolutionLoc, canvasRef.value.width, canvasRef.value.height)
@@ -268,7 +392,7 @@ const render = (time) => {
  * @param {number} strength - 涟漪强度
  */
 const addRipple = (x, y, strength = 0.025) => {
-  console.log('[HomeBg] Adding ripple at:', x.toFixed(3), y.toFixed(3))
+  if (useFallback.value) return
   localRipples.push({
     x,
     y,
@@ -287,22 +411,26 @@ defineExpose({ addRipple })
 // 生命周期钩子
 onMounted(async () => {
   const canvas = canvasRef.value
-  if (!canvas) return
+  // 移动端 / 不支持 WebGL → 不初始化，直接显示完整背景图（home-bg.png）
+  if (!canvas || useFallback.value) return
 
   resize(canvas)
   window.addEventListener('resize', () => resize(canvas))
 
   if (!initGL(canvas)) {
     console.warn('[HomeBg] WebGL init failed, using fallback')
+    useFallback.value = true
     return
   }
 
-  // 先启动渲染循环（显示黑色背景），纹理异步加载
+  // 先启动渲染循环（纹理异步加载期间显示原图）
   animationId = requestAnimationFrame(render)
 
   texture = await loadTexture(gl, '/home-bg.png')
   if (!texture) {
-    console.warn('[HomeBg] Texture load failed, showing black bg')
+    console.warn('[HomeBg] Texture load failed, using fallback')
+    if (animationId) cancelAnimationFrame(animationId)
+    useFallback.value = true
     return
   }
 
@@ -316,17 +444,43 @@ onMounted(async () => {
     updateCoverRatio()
   }
 
-  // 环境涟漪：每隔一段时间自动生成一圈柔和涟漪，让水面始终有呼吸感（修复「涟漪效果消失」观感）
-  ambientTimer = setInterval(() => {
-    addRipple(Math.random(), Math.random(), 0.02)
-  }, 3500)
+  // 鼠标位置：仅记录目标点；真正的「水痕」在渲染循环里平滑跟随（无离散波纹、不卡顿）
+  pointerMoveHandler = (e) => {
+    mouseTarget.x = e.clientX / window.innerWidth
+    // 与点击涟漪共用坐标系：JS 预翻 Y（1 - y/H），着色器内再翻一次 → 与光标屏幕坐标严格对齐（修「鼠标下移、水痕上移」的 Y 镜像）
+    mouseTarget.y = 1.0 - e.clientY / window.innerHeight
+    mouseInside = true
+  }
+  window.addEventListener('pointermove', pointerMoveHandler, { passive: true })
 
-  console.log('[HomeBg] WebGL ready, texture loaded')
+  // 光标移出窗口 → 水痕强度自然衰减
+  pointerLeaveHandler = () => { mouseInside = false }
+  window.addEventListener('pointerleave', pointerLeaveHandler, { passive: true })
+
+  // WebGL 上下文丢失（驱动崩溃 / 省电策略杀 GPU）→ 退回静态图片
+  contextLostHandler = (e) => {
+    e.preventDefault()
+    if (animationId) cancelAnimationFrame(animationId)
+    useFallback.value = true
+  }
+  canvas.addEventListener('webglcontextlost', contextLostHandler, { passive: true })
+
+  // 环境涟漪：每隔一段时间自动生成一圈柔和涟漪，让水面始终有呼吸感（尊重「减少动态效果」偏好）
+  if (!reduceMotion) {
+    ambientTimer = setInterval(() => {
+      addRipple(Math.random(), Math.random(), 0.015)
+    }, 3500)
+  }
 })
 
 onUnmounted(() => {
   if (animationId) cancelAnimationFrame(animationId)
   if (ambientTimer) clearInterval(ambientTimer)
+  if (pointerMoveHandler) window.removeEventListener('pointermove', pointerMoveHandler)
+  if (pointerLeaveHandler) window.removeEventListener('pointerleave', pointerLeaveHandler)
+  if (contextLostHandler && canvasRef.value) {
+    canvasRef.value.removeEventListener('webglcontextlost', contextLostHandler)
+  }
   if (gl) {
     gl.getExtension('WEBGL_lose_context')?.loseContext()
   }

@@ -6,10 +6,14 @@ import 'element-plus/dist/index.css'
 import './styles/global.css'
 import './styles/cursor.css'
 import './styles/animation.css'
+import { magnetic } from './directives/magnetic'
+import { tilt } from './directives/tilt'
 
 const app = createApp(App)
 app.use(router)
 app.use(ElementPlus)
+app.directive('magnetic', magnetic)
+app.directive('tilt', tilt)
 app.mount('#app')
 
 /* ============================================

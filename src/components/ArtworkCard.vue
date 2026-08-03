@@ -1,7 +1,16 @@
 <template>
-  <div class="artwork-card" @mouseenter="hover = true" @mouseleave="hover = false">
+  <div class="artwork-card" :style="cardStyle" @mousemove="onTilt" @mouseenter="hover = true" @mouseleave="onTiltLeave">
     <div class="card-image">
-      <img v-if="isImage" :src="artwork.coverUrl" :alt="artwork.title" loading="lazy" />
+      <img v-if="isImage"
+        :src="artwork.coverUrl"
+        :srcset="srcsetFor(artwork)"
+        sizes="(max-width: 640px) 45vw, (max-width: 1024px) 32vw, 300px"
+        :width="artwork.coverWidth || 800"
+        :height="artwork.coverWidth ? Math.round(artwork.coverWidth * 2 / 3) : 533"
+        :alt="artwork.title"
+        loading="lazy"
+        decoding="async"
+      />
       <video
         v-else-if="isVideo"
         :src="artwork.coverUrl"
@@ -14,6 +23,7 @@
         @mouseleave="pauseVideo"
       ></video>
       <div v-else class="card-image-placeholder"></div>
+      <div class="card-glare" :style="glareStyle"></div>
       <div v-if="isEmbedVideo" class="card-play-badge" @click.stop="$emit('view', artwork)">
         <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor">
           <path d="M8 5v14l11-7z"/>
@@ -60,6 +70,38 @@ const props = defineProps({ artwork: { type: Object, required: true } })
 const emit = defineEmits(['view', 'download'])
 const hover = ref(false)
 
+// 3D 倾斜 + 反光：随光标在卡片上移动计算 rotateX/rotateY 与高光位置（零依赖，纯 CSS 变量驱动）
+const rx = ref(0)
+const ry = ref(0)
+const gx = ref(50)
+const gy = ref(50)
+
+const onTilt = (e) => {
+  const rect = e.currentTarget.getBoundingClientRect()
+  const px = (e.clientX - rect.left) / rect.width
+  const py = (e.clientY - rect.top) / rect.height
+  ry.value = (px - 0.5) * 12   // 左右 → rotateY
+  rx.value = (0.5 - py) * 12   // 上下 → rotateX
+  gx.value = px * 100
+  gy.value = py * 100
+}
+const onTiltLeave = () => {
+  hover.value = false
+  rx.value = 0
+  ry.value = 0
+  gx.value = 50
+  gy.value = 50
+}
+const cardStyle = computed(() => ({
+  transform:
+    `perspective(900px) rotateX(${rx.value}deg) rotateY(${ry.value}deg)` +
+    (hover.value ? ' translateY(-4px)' : '')
+}))
+const glareStyle = computed(() => ({
+  background: `radial-gradient(circle at ${gx.value}% ${gy.value}%, rgba(255,255,255,0.45), transparent 45%)`,
+  opacity: hover.value ? 1 : 0
+}))
+
 const isImage = computed(() => {
   if (!props.artwork?.coverUrl) return false
   return /\.(png|jpe?g|gif|webp|avif|svg)$/i.test(props.artwork.coverUrl)
@@ -69,6 +111,16 @@ const isVideo = computed(() => {
   return /\.(mp4|webm|ogg|mov)$/i.test(props.artwork.coverUrl)
 })
 const isEmbedVideo = computed(() => !!props.artwork?.videoEmbed)
+
+// 按多尺寸变体拼 srcset；旧数据缺字段时退化为仅 coverUrl，仍可正常显示
+const srcsetFor = (art) => {
+  if (!art) return null
+  const parts = []
+  if (art.coverThumbUrl) parts.push(`${art.coverThumbUrl} 400w`)
+  if (art.coverUrl) parts.push(`${art.coverUrl} 800w`)
+  if (art.coverLargeUrl) parts.push(`${art.coverLargeUrl} 1600w`)
+  return parts.length ? parts.join(', ') : null
+}
 
 function playVideo(e) {
   const video = e.target
@@ -95,9 +147,9 @@ function pauseVideo(e) {
   transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.45s ease;
   cursor: pointer;
   border: 1px solid rgba(0,0,0,0.06);
+  transform-style: preserve-3d;
 }
 .artwork-card:hover {
-  transform: translateY(-4px);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.08);
 }
 .card-image {
@@ -117,6 +169,15 @@ function pauseVideo(e) {
   width: 100%;
   height: 100%;
   background: #eae5d8;
+}
+.card-glare {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  mix-blend-mode: overlay;
 }
 .card-play-badge {
   position: absolute;

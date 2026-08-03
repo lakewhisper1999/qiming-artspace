@@ -2,23 +2,23 @@
   <div class="about-page">
     <section class="about-hero">
       <div class="about-container">
-        <span class="section-tag">关于</span>
-        <h1 class="about-title">启明</h1>
+        <RevealText tag="span" class="section-tag" text="关于" />
+        <RevealText tag="h1" class="about-title" text="启明" />
         <p class="about-subtitle">{{ aboutSubtitle }}</p>
         <p class="about-desc" v-for="(line, i) in aboutContentLines" :key="i">{{ line }}</p>
 
         <div class="about-links">
-          <a href="#/artwork" class="about-link">浏览作品</a>
-          <a href="#/ask" class="about-link">向我提问</a>
+          <a href="#/artwork" class="about-link" v-magnetic>浏览作品</a>
+          <a href="#/ask" class="about-link" v-magnetic>向我提问</a>
         </div>
       </div>
     </section>
 
     <section class="about-skills">
       <div class="about-container">
-        <h2 class="skills-title">创作领域</h2>
+        <RevealText tag="h2" class="skills-title" text="创作领域" />
         <div class="skills-grid">
-          <div v-for="s in skills" :key="s.title" class="skill-card">
+          <div v-for="s in skills" :key="s.title" class="skill-card" v-tilt>
             <span class="skill-icon">{{ s.icon }}</span>
             <h3>{{ s.title }}</h3>
             <p>{{ s.desc }}</p>
@@ -31,6 +31,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import RevealText from '../components/RevealText.vue'
 
 const aboutSubtitle = ref('')
 const aboutContent = ref('')

@@ -2,8 +2,8 @@
  * WebGL 水波纹常量
  */
 
-// 最大涟漪数量
-export const MAX_RIPPLES = 6
+// 最大涟漪数量（放宽以容纳鼠标跟随波纹 + 环境涟漪）
+export const MAX_RIPPLES = 12
 
 // 涟漪生命周期 (毫秒)
 export const RIPPLE_LIFETIME = 2500

@@ -1,25 +1,26 @@
 // =============================================================
-// 启明艺术空间 · 静态站导出脚本（无后端部署用 · 不依赖任何云存储）
+// 启明艺术空间 · 静态站导出脚本（无后端部署用）
 // -------------------------------------------------------------
 // 作用：连本地 MySQL → 读 artwork / article / category 表 →
-//       把作品引用的图片复制到前端 public/media/ 目录 →
+//       把作品引用的图片生成多尺寸 WebP + 复制原图到 public/media/ →
 //       生成 public/data/works.json（前端 Artwork/Article 直接读）
-//       生成 public/data/site-config.json（前端「关于」页直接读，含关于我等）
+//       生成 public/data/site-config.json（前端「关于」页直接读）
 //
-// 核心思路：媒体不依赖 R2 / OSS 等第三方，图片直接打进前端构建产物
-// （dist/media/），由 Cloudflare Pages 一起托管 —— 零费用、零绑卡。
-// works.json 里的路径用站点根路径 /media/...，前端无需任何改动。
+// 媒体处理：每张图片用 sharp 生成 缩略(400w)/中(800w)/大(1600w) 三档 WebP，
+//          前端按屏幕用 srcset 取图，手机不再下载原图 → 加载显著提速。
+//          原图仍保留作回退/下载。
 //
 // 运行（在你本地、MySQL 启动时）：
-//   1. cp .env.example .env  并填好 DB 参数（不需要 R2）
-//   2. npm install            （安装 mysql2 / dotenv）
+//   1. cp .env.example .env 并填好 DB 参数（不需要 R2）
+//   2. npm install            （安装 mysql2 / dotenv / sharp）
 //   3. npm run export:works
 //
-// 注意：Cloudflare Pages 单文件上限 25MB，超过的图片会被跳过（仅告警）。
-//       视频（1.7G）无法走 Pages，本脚本不导出 video，需要可后续接 B站嵌入。
+// 注意：Cloudflare Pages 单文件上限 25MB，超过的原图会被跳过（仅告警），
+//       但 WebP 变体仍会从本地原图生成（不受 25MB 限制，体积小）。
 // =============================================================
 import 'dotenv/config'
 import mysql from 'mysql2/promise'
+import sharp from 'sharp'
 import { existsSync, mkdirSync, statSync } from 'fs'
 import { copyFile } from 'fs/promises'
 import path from 'path'
@@ -52,7 +53,7 @@ async function copyToPublic(localPath, relKey) {
   }
   const size = statSync(localPath).size
   if (size > MAX_FILE_BYTES) {
-    console.warn(`  ⚠ 文件 ${(size / 1024 / 1024) | 0}MB 超过 Pages 25MB 限制，跳过:`, relKey)
+    console.warn(`  ⚠ 文件 ${(size / 1024 / 1024) | 0}MB 超过 Pages 25MB 限制，跳过原图:`, relKey)
     return null
   }
   const dest = path.join(MEDIA_DIR, relKey)
@@ -69,6 +70,60 @@ async function copyUploadsPath(uploadsPath) {
   const local = path.join(UPLOADS_DIR, rel)
   return await copyToPublic(local, rel)
 }
+
+// 是否为可生成 WebP 变体的图片
+const IMG_RE = /\.(png|jpe?g|gif|webp|bmp|tiff)$/i
+
+// 为本地图片生成 WebP 三档变体，返回 { original, thumb, medium, large, width }
+// original 可能因超过 25MB 为 null，但变体仍会从本地原图生成。
+async function makeImageVariants(localPath, relKey) {
+  if (!existsSync(localPath)) {
+    console.warn('  ⚠ 本地文件不存在，跳过:', localPath)
+    return null
+  }
+  const ext = path.extname(relKey)
+  const base = relKey.slice(0, -ext.length)
+  let width = 0
+  try { width = (await sharp(localPath).metadata()).width || 0 } catch { /* ignore */ }
+
+  const make = async (suffix, w) => {
+    const outRel = `${base}${suffix}.webp`
+    const dest = path.join(MEDIA_DIR, outRel)
+    mkdirSync(path.dirname(dest), { recursive: true })
+    await sharp(localPath)
+      .webp({ quality: 82, effort: 4 })
+      .resize({ width: w, withoutEnlargement: true })
+      .toFile(dest)
+    return `/media/${outRel}`
+  }
+
+  const large = await make('.large', 1600)
+  const medium = await make('.medium', 800)
+  const thumb = await make('.thumb', 400)
+  const original = await copyToPublic(localPath, relKey) // 可能 null（超 25MB）
+  return { original, thumb, medium, large, width }
+}
+
+// 处理一个 uploads 路径：
+//   - 图片 → 变体对象 { original, thumb, medium, large, width }
+//   - 视频/绝对URL/缺失 → 原字符串或 null
+async function processMedia(uploadsPath) {
+  if (!uploadsPath) return null
+  if (/^https?:\/\//i.test(uploadsPath)) return uploadsPath
+  const rel = uploadsPath.replace(/^\/uploads\//, '')
+  const local = path.join(UPLOADS_DIR, rel)
+  if (IMG_RE.test(rel)) {
+    return await makeImageVariants(local, rel)
+  }
+  // 非图片（视频等）：直接复制原文件
+  return await copyUploadsPath(uploadsPath)
+}
+
+// 从变体对象/字符串中取出封面主图（中图 800w，作默认 src）
+const coverMain = (m) => (m ? (typeof m === 'string' ? m : m.medium) : null)
+const coverThumb = (m) => (m && typeof m === 'object' ? m.thumb : null)
+const coverLarge = (m) => (m && typeof m === 'object' ? m.large : null)
+const coverWidth = (m) => (m && typeof m === 'object' ? m.width : null)
 
 const formatDate = (d) => {
   if (!d) return null
@@ -112,7 +167,7 @@ async function main() {
      FROM artwork WHERE deleted=0 ORDER BY created_at DESC`)
   const artworks = []
   for (const a of arts) {
-    const coverUrl = await copyUploadsPath(a.cover_url)
+    const cover = await processMedia(a.cover_url)
     let imageUrls = null
     if (a.image_urls) {
       try {
@@ -120,8 +175,8 @@ async function main() {
         if (Array.isArray(arr)) {
           const urls = []
           for (const p of arr) {
-            const u = await copyUploadsPath(p)
-            if (u) urls.push(u)
+            const m = await processMedia(p)
+            if (m) urls.push(typeof m === 'string' ? m : m.large)
           }
           if (urls.length) imageUrls = JSON.stringify(urls)
         }
@@ -132,7 +187,11 @@ async function main() {
     const videoEmbed = normalizeEmbedUrl(a.video_url)
     artworks.push({
       id: a.id, title: a.title, description: a.description,
-      coverUrl, imageUrls,
+      coverUrl: coverMain(cover),
+      coverThumbUrl: coverThumb(cover),
+      coverLargeUrl: coverLarge(cover),
+      coverWidth: coverWidth(cover),
+      imageUrls,
       videoEmbed,
       categoryName: catName[a.category_id] || '未分类',
       categoryId: a.category_id,
@@ -143,7 +202,7 @@ async function main() {
       downloadCount: a.download_count || 0,
     })
   }
-  console.log(`✓ 作品 ${artworks.length} 件已处理`)
+  console.log(`✓ 作品 ${artworks.length} 件已处理（含 WebP 多尺寸）`)
 
   // —— 图文笔记 ——
   const [arts2] = await conn.execute(
@@ -151,10 +210,13 @@ async function main() {
      FROM article WHERE deleted=0 ORDER BY created_at DESC`)
   const articles = []
   for (const a of arts2) {
-    const coverUrl = await copyUploadsPath(a.cover_url)
+    const cover = await processMedia(a.cover_url)
     articles.push({
       id: a.id, title: a.title, content: a.content || '',
-      coverUrl,
+      coverUrl: coverMain(cover),
+      coverThumbUrl: coverThumb(cover),
+      coverLargeUrl: coverLarge(cover),
+      coverWidth: coverWidth(cover),
       categoryName: catName[a.category_id] || '图文笔记',
       categoryId: a.category_id,
       createdAt: formatDate(a.created_at),
@@ -168,8 +230,6 @@ async function main() {
   const videos = []
 
   // —— 站点配置（关于我等）：静态站「关于」页直接读，与后台管理同源 ——
-  // 这样部署后的前端展示的「关于我」与管理后台编辑的是同一份数据，
-  // 重新导出 + 重新部署即可同步（与作品/图文一致）。
   const [cfgRows] = await conn.execute('SELECT config_key, config_value FROM site_config')
   const siteConfig = {}
   for (const r of cfgRows) siteConfig[r.config_key] = r.config_value
