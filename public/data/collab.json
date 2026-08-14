@@ -1,23 +1,23 @@
 {
-  "generatedAt": "2026-08-14T08:04:00.386Z",
+  "generatedAt": "2026-08-14T08:05:37.679Z",
   "repo": {
     "fullName": "lakewhisper1999/qiming-artspace",
     "htmlUrl": "https://github.com/lakewhisper1999/qiming-artspace",
     "defaultBranch": "main",
     "description": "启明艺术空间，一个设计作品展示平台",
-    "updatedAt": "2026-08-14T08:02:22Z"
+    "updatedAt": "2026-08-14T08:04:01Z"
   },
   "stats": {
     "total": 2,
-    "open": 2,
-    "closed": 0
+    "open": 1,
+    "closed": 1
   },
   "issues": [
     {
       "number": 16,
       "title": "[流程测试] 验证 GitHub Project 协作链路",
-      "state": "open",
-      "state_reason": null,
+      "state": "closed",
+      "state_reason": "completed",
       "labels": [
         "duplicate"
       ],
@@ -25,8 +25,8 @@
       "avatar": "https://avatars.githubusercontent.com/u/309355001?v=4",
       "comments": 0,
       "created_at": "2026-08-14T08:02:02Z",
-      "updated_at": "2026-08-14T08:03:43Z",
-      "closed_at": null,
+      "updated_at": "2026-08-14T08:05:22Z",
+      "closed_at": "2026-08-14T08:05:22Z",
       "html_url": "https://github.com/lakewhisper1999/qiming-artspace/issues/16",
       "body": "这是一次流程演练 Issue，用于验证「Issue → Project → 看板 → 状态同步 → 关闭归档」全链路。\n不涉及真实代码改动，仅验证协作流。"
     },
