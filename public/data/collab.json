@@ -1,18 +1,35 @@
 {
-  "generatedAt": "2026-08-14T08:06:58.771Z",
+  "generatedAt": "2026-08-14T08:18:23.260Z",
   "repo": {
     "fullName": "lakewhisper1999/qiming-artspace",
     "htmlUrl": "https://github.com/lakewhisper1999/qiming-artspace",
     "defaultBranch": "main",
     "description": "启明艺术空间，一个设计作品展示平台",
-    "updatedAt": "2026-08-14T08:05:39Z"
+    "updatedAt": "2026-08-14T08:07:00Z"
   },
   "stats": {
-    "total": 2,
-    "open": 0,
+    "total": 3,
+    "open": 1,
     "closed": 2
   },
   "issues": [
+    {
+      "number": 17,
+      "title": "完善README文件：补充使用说明与开源致谢环节",
+      "state": "open",
+      "state_reason": null,
+      "labels": [
+        "documentation"
+      ],
+      "user": "lakewhisper1999",
+      "avatar": "https://avatars.githubusercontent.com/u/309355001?v=4",
+      "comments": 0,
+      "created_at": "2026-08-14T08:18:04Z",
+      "updated_at": "2026-08-14T08:18:04Z",
+      "closed_at": null,
+      "html_url": "https://github.com/lakewhisper1999/qiming-artspace/issues/17",
+      "body": "### 优先级\n\n⚪暂缓\n\n### 涉及模块\n\n文档 / 协作流程\n\n### 预估工作量\n\nXS\n\n### 需求描述\n\n完善仓库 README.md，让开源访客能快速跑起来并了解项目依赖来源。\n\n### 验收标准\n\n- [ ] 1. 新增「使用说明」章节：本地启动三仓的方法\n      - 前端 qiming-artspace：npm install && npm run dev（端口 5173）\n      - 后端 qiming-server：Spring Boot，端口 8088\n      - 后台 qiming-admin：npm install && npm run dev（端口 5174）\n      - 注明默认管理员 admin/admin123\n- [ ] 2. 新增「开源致谢」章节：感谢核心技术栈\n      - 前端：Vue 3 / Vite / Element Plus\n      - 后端：Spring Boot / MyBatis-Plus / JWT\n      - 部署：Cloudflare Pages\n- [ ] 3. 保持 README 现有内容结构，仅追加，不删改原有章节\n\n验收：README 渲染正常，章节链接锚点可用，无破坏现有格式。\n\n### 需求来源\n\n本次对话，issue\n\n### 补充材料\n\n_No response_"
+    },
     {
       "number": 15,
       "title": "测试管理面板功能",
