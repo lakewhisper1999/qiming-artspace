@@ -1,0 +1,90 @@
+name: ✨ 功能 / 需求
+description: 提出一个新功能、体验优化或开发任务
+title: "[Feature] "
+labels: ["type:功能", "status:待办"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > 提交前请先在 [协作进度页](https://qiming-artspace.pages.dev/#/collab) 确认是否已有同类任务。
+        > 带 `*` 的字段为必填，缺失将无法提交——这是为了让每条需求都可被排期与验收。
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 优先级
+      description: 影响排期顺序，拿不准就选「🟢中」
+      options:
+        - 🔴阻断
+        - 🟡高
+        - 🟢中
+        - ⚪暂缓
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: 涉及模块
+      description: 这条需求落在站点的哪一块
+      options:
+        - 首页 / 涟漪背景
+        - 作品集（平面及动效 / 素材库 / 学习工程）
+        - 图文笔记
+        - 提问箱
+        - 关于页
+        - 协作进度页
+        - 全局导航 / 过渡动画
+        - 管理后台（qiming-admin）
+        - 后端接口（qiming-server）
+        - 文档 / 协作流程
+        - 其他
+    validations:
+      required: true
+
+  - type: dropdown
+    id: effort
+    attributes:
+      label: 预估工作量
+      description: XS≈半小时内 / S≈半天 / M≈1~2 天 / L≈需要拆卡
+      options:
+        - XS
+        - S
+        - M
+        - L
+
+  - type: textarea
+    id: desc
+    attributes:
+      label: 需求描述
+      description: 要做什么？解决什么问题？现在的痛点是什么？
+      placeholder: |
+        例：作品集卡片下载按钮点了没反应，希望支持原图下载并统计下载次数。
+    validations:
+      required: true
+
+  - type: textarea
+    id: accept
+    attributes:
+      label: 验收标准
+      description: 做到什么程度算完成（写成可勾选的清单，验收时逐条打钩）
+      value: |
+        - [ ] 
+        - [ ] 
+    validations:
+      required: true
+
+  - type: input
+    id: source
+    attributes:
+      label: 需求来源
+      description: 谁、在哪次对话 / 哪个 Issue 提出的（溯源用，别留空）
+      placeholder: "例：访客在提问箱留言 / 凯文 2026-08-14 复盘 / #12"
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: 补充材料
+      description: 参考截图、竞品链接、设计稿、相关代码位置等

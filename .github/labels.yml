@@ -1,0 +1,58 @@
+# 启明艺术空间 · 标签体系（单一事实源）
+#
+# 用途：Issue 模板会自动打 type:* 与 status:待办；前端「协作进度」页（Collab.vue 的 classify()）按 status:* 分四列。
+# 同步方式：仓库 → Actions → 「同步 Issue 标签」→ Run workflow（读取本文件，缺失即创建，颜色/描述不一致即更新）。
+# ⚠️ 标签名一旦修改，需同步改 src/views/Collab.vue 的 classify() 与 src/utils/markdown.js 的配色映射。
+
+# ---------- 状态：决定前端看板的列 ----------
+- name: "status:待办"
+  color: "d4c5f9"
+  description: 已受理未开工，等待认领
+- name: "status:进行中"
+  color: "0e8a16"
+  description: 已认领，正在开发
+- name: "status:待审核"
+  color: "fbca04"
+  description: 代码已合入，等待验收
+
+# ---------- 优先级：决定列内排序 ----------
+- name: "P0:阻断"
+  color: "b60205"
+  description: 线上不可用，立即处理
+- name: "P1:高"
+  color: "d93f0b"
+  description: 本轮迭代必须完成
+- name: "P2:中"
+  color: "fef2c0"
+  description: 排入 backlog
+- name: "P3:暂缓"
+  color: "ededed"
+  description: 想法记录，暂不排期
+
+# ---------- 类型：Issue 模板自动打 ----------
+- name: "type:功能"
+  color: "1d76db"
+  description: 新功能 / 体验优化
+- name: "type:bug"
+  color: "e11d21"
+  description: 缺陷修复
+- name: "type:内容"
+  color: "c2e0c6"
+  description: 作品 / 素材 / 图文上下架
+- name: "type:文档"
+  color: "bfd4f2"
+  description: 文档与协作流程
+
+# ---------- 归属：跨仓库定位 ----------
+- name: "area:前端"
+  color: "5319e7"
+  description: qiming-artspace
+- name: "area:后端"
+  color: "006b75"
+  description: qiming-server
+- name: "area:后台"
+  color: "0052cc"
+  description: qiming-admin
+- name: "area:部署"
+  color: "f9d0c4"
+  description: Cloudflare Pages / 快照发布

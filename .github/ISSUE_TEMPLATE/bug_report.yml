@@ -1,0 +1,82 @@
+name: 🐛 Bug 反馈
+description: 报告一个缺陷（页面报错、样式错乱、功能失效等）
+title: "[Bug] "
+labels: ["type:bug", "status:待办"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > 站点地址：<https://qiming-artspace.pages.dev>
+        > 请尽量附上截图或控制台报错，能省下一半排查时间。
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: 严重程度
+      options:
+        - 🔴阻断（页面打不开 / 核心功能不可用）
+        - 🟡高（功能可用但明显错误）
+        - 🟢中（体验瑕疵 / 样式问题）
+        - ⚪低（细节优化）
+    validations:
+      required: true
+
+  - type: dropdown
+    id: page
+    attributes:
+      label: 出问题的页面
+      options:
+        - 首页 (#/)
+        - 作品集 (#/artwork)
+        - 图文笔记 (#/article)
+        - 关于 (#/about)
+        - 提问箱 (#/ask)
+        - 协作进度 (#/collab)
+        - 全局（导航 / 光标 / 转场）
+        - 管理后台
+        - 不确定
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      value: |
+        1. 打开 
+        2. 点击 
+        3. 出现 
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为 vs 实际行为
+      placeholder: |
+        期望：点击下载后开始下载原图
+        实际：控制台报 404，无任何反应
+    validations:
+      required: true
+
+  - type: input
+    id: env
+    attributes:
+      label: 环境
+      description: 浏览器 + 系统 + 设备（手机请写机型）
+      placeholder: "例：Chrome 130 / Windows 11 桌面端；或 Safari / iPhone 14"
+    validations:
+      required: true
+
+  - type: input
+    id: source
+    attributes:
+      label: 反馈来源
+      description: 谁发现的、在哪反馈的（溯源用）
+      placeholder: "例：访客微信反馈 / 自测发现"
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: 截图 / 控制台日志
+      description: 直接把图片拖进来即可

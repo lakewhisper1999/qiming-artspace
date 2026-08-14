@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📊 先看协作进度页（避免重复提单）
+    url: https://qiming-artspace.pages.dev/#/collab
+    about: 在启明艺术空间前端「协作进度」页查看看板状态、优先级与协作文档
+  - name: 🗺 路线图与里程碑
+    url: https://github.com/lakewhisper1999/qiming-artspace/blob/main/docs/ROADMAP.md
+    about: 当前迭代目标与 backlog 优先级
+  - name: 📋 任务看板（Markdown 真相源）
+    url: https://github.com/lakewhisper1999/qiming-artspace/blob/main/docs/TASKBOARD.md
+    about: 三栏看板：待办 / 进行中 / 待审核
+  - name: 🤝 协作规范
+    url: https://github.com/lakewhisper1999/qiming-artspace/blob/main/.github/CONTRIBUTING.md
+    about: 分支纪律、PR 流程、标签体系、移卡规则

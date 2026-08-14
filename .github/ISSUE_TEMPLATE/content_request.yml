@@ -1,0 +1,67 @@
+name: 🎨 作品 / 内容上架
+description: 申请新增、替换或下架作品、素材、图文笔记
+title: "[Content] "
+labels: ["type:内容", "status:待办"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > 站点数据来自 `public/data/works.json` 静态快照。
+        > 内容变更需在管理后台录入后执行 `npm run export:works` 重新生成快照并推送，才会在线上生效。
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: 内容类型
+      options:
+        - 平面及动效作品
+        - 素材库
+        - 学习工程
+        - 图文笔记
+        - 关于页信息
+    validations:
+      required: true
+
+  - type: dropdown
+    id: action
+    attributes:
+      label: 操作
+      options:
+        - 新增上架
+        - 替换 / 修改
+        - 下架
+    validations:
+      required: true
+
+  - type: input
+    id: work_title
+    attributes:
+      label: 作品 / 内容标题
+      placeholder: "例：《晨间光斑》系列 03"
+    validations:
+      required: true
+
+  - type: textarea
+    id: work_desc
+    attributes:
+      label: 内容说明
+      description: 简介、分类、创作时间、需要展示的文字
+    validations:
+      required: true
+
+  - type: textarea
+    id: assets
+    attributes:
+      label: 素材文件
+      description: 原图 / 视频链接（B 站视频请给 BV 号或嵌入链接），或说明文件已放在哪
+      placeholder: |
+        - 原图：网盘链接 xxx
+        - 视频：https://www.bilibili.com/video/BVxxxxxxx
+    validations:
+      required: true
+
+  - type: input
+    id: source
+    attributes:
+      label: 需求来源
+      placeholder: "例：凯文 2026-08-14 整理素材时提出"
