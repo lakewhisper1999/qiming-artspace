@@ -20,5 +20,16 @@
 4. 在 PR 中说明目的与验证方式，关联相关 Issue（如 `Closes #12`）。
 5. 等待 review 合并。
 
+## 协作与进度管理
+本项目用 **GitHub Issues + Markdown 文档** 做轻量协作与进度管理。
+
+- **提需求 / 报 Bug**：使用 Issue 模板（功能需求 / 问题反馈 / 内容上架）。请至少打一个 `type:` 标签与一个 `status:待办`。
+- **进度看板**：Issue 按 `status:*` 标签归入「待办 / 进行中 / 待审核 / 已关闭」，前端 `/collab` 页实时呈现。
+- **标签**：集中在 `.github/labels.yml` 维护，运行 `node scripts/sync-labels.mjs`（需 Token）同步。
+- **看板快照**：`scripts/export-collab.mjs` 生成 `public/data/collab.json`，GitHub Action 在 Issue 变动后自动刷新。
+- **文档**：路线图、看板说明、搭建说明见 `docs/` 目录，前端可直接浏览。
+
+详细结构见 [docs/GITHUB_SETUP.md](../docs/GITHUB_SETUP.md)。
+
 ## 许可
 本项目以 MIT 协议开源，提交代码即表示同意以相同协议授权。

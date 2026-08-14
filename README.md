@@ -85,19 +85,46 @@ qiming-artspace/
 ├── index.html
 ├── vite.config.js           # base:'./'，/api、/uploads 代理到 8088
 ├── package.json
-├── scripts/export-works.mjs # 数据库 → 静态 JSON 导出（含 site-config.json）
+├── scripts/
+│   ├── export-works.mjs     # 数据库 → 静态 JSON 导出（含 site-config.json）
+│   └── export-collab.mjs    # GitHub Issues → public/data/collab.json 快照
+├── .github/
+│   ├── ISSUE_TEMPLATE/       # 需求/问题/内容上架 三套表单模板
+│   ├── labels.yml            # 标签定义（集中维护）
+│   └── workflows/update-collab.yml  # 定时 + Issue 变动刷新快照
+├── docs/                    # 协作文档：ROADMAP / TASKBOARD / GITHUB_SETUP
 ├── public/
 │   ├── data/works.json       # 作品 / 图文（导出生成）
 │   ├── data/site-config.json # 站点配置 / 关于我（导出生成）
+│   ├── data/collab.json      # 协作看板快照（自动生成）
 │   └── media/                # 导出复制的图片
 └── src/
     ├── main.js
     ├── App.vue
     ├── router/index.js
+    ├── config/collab.js       # 协作页对接的仓库/分支/文档清单
+    ├── utils/github.js        # 拉取 Issues + 构建提交链接
+    ├── utils/markdown.js      # 安全渲染 Markdown（零依赖内置渲染器）
     ├── views/About.vue        # 关于页（读 site-config.json → /api → 默认值）
+    ├── views/Collab.vue       # 协作 · 进度页（看板/提需求/文档 三 Tab）
     ├── views/...              # 各业务页面
     └── components/...
 ```
+
+## 🤝 协作与进度管理
+
+本项目用 **GitHub Issues + Markdown 文档** 做轻量协作与进度管理，并在前端「协作 · 进度」页（`/collab`）直接呈现：
+
+- **进度看板**：实时读取 Issues（限流/离线时回退 `public/data/collab.json` 快照），按 `status:*` 标签归入「待办 / 进行中 / 待审核 / 已关闭」。
+- **提交需求**：在前端填写结构化表单，一键跳转 GitHub 创建 Issue（或打开完整 Issue 模板）。
+- **协作文档**：在线浏览 README / CONTRIBUTING / ROADMAP / TASKBOARD / GITHUB_SETUP。
+
+相关文档：
+
+- [协作系统搭建说明（GITHUB_SETUP）](docs/GITHUB_SETUP.md)
+- [任务看板与标签（TASKBOARD）](docs/TASKBOARD.md)
+- [路线图（ROADMAP）](docs/ROADMAP.md)
+- [参与贡献（CONTRIBUTING）](.github/CONTRIBUTING.md)
 
 ## 🤝 参与贡献
 

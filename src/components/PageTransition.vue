@@ -1,6 +1,15 @@
 <template>
   <div class="page-transition">
     <div class="slide-panel" :class="panelPhase">
+      <!-- 顶部液态波浪边缘（进入时随面板扫过屏幕，可见） -->
+      <svg class="wave wave-top" viewBox="0 0 2880 60" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0,30 q 180,-22 360,0 t 360,0 t 360,0 t 360,0 t 360,0 t 360,0 t 360,0 t 360,0 L2880,60 L0,60 Z" fill="#f9f6e8"/>
+      </svg>
+      <!-- 底部液态波浪边缘（退出时随面板上移离开屏幕，可见） -->
+      <svg class="wave wave-bottom" viewBox="0 0 2880 60" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0,30 q 180,22 360,0 t 360,0 t 360,0 t 360,0 t 360,0 t 360,0 t 360,0 t 360,0 L2880,0 L0,0 Z" fill="#ece0b4"/>
+      </svg>
+
       <div class="panel-logo">
         <img src="/logo.png" :alt="logoText" />
       </div>
@@ -65,6 +74,22 @@ onMounted(() => {
 .slide-panel.slide-out {
   transform: translateY(-100%);
   transition: transform 0.6s cubic-bezier(0.55, 0.085, 0.68, 0.53);
+}
+
+/* 液态波浪边缘：宽 200% + 横向流动，制造“水波擦除”的液态转场感（零依赖） */
+.wave {
+  position: absolute;
+  left: 0;
+  width: 200%;
+  height: 60px;
+  pointer-events: none;
+  animation: waveFlow 7s linear infinite;
+}
+.wave-top { bottom: 100%; }
+.wave-bottom { top: 100%; }
+
+@keyframes waveFlow {
+  to { transform: translateX(-50%); }
 }
 
 .panel-logo {

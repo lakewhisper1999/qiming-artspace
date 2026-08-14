@@ -8,7 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "export:works": "node scripts/export-works.mjs",
-    "publish:works": "npm run export:works && git add -A && git commit -m \"chore: publish works snapshot\" && git push"
+    "publish:works": "npm run export:works && git add -A && git commit -m \"chore: publish works snapshot\" && git push",
+    "export:collab": "node scripts/export-collab.mjs",
+    "publish:collab": "npm run export:collab && git add public/data/collab.json && git commit -m \"chore: publish collab snapshot\" && git push"
   },
   "dependencies": {
     "element-plus": "^2.14.2",

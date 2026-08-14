@@ -4,6 +4,7 @@ import Artwork from '../views/Artwork.vue'
 import Article from '../views/Article.vue'
 import About from '../views/About.vue'
 import AskBox from '../views/AskBox.vue'
+import Collab from '../views/Collab.vue'
 
 const routes = [
   { path: '/', name: 'Home', component: Home, meta: { transition: 'home' } },
@@ -11,6 +12,7 @@ const routes = [
   { path: '/article', name: 'Article', component: Article, meta: { transition: 'page' } },
   { path: '/about', name: 'About', component: About, meta: { transition: 'page' } },
   { path: '/ask', name: 'AskBox', component: AskBox, meta: { transition: 'page' } },
+  { path: '/collab', name: 'Collab', component: Collab, meta: { transition: 'page' } },
 ]
 
 const router = createRouter({

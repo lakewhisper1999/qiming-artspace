@@ -24,8 +24,8 @@
     <!-- 页面头部 -->
     <section class="page-header">
       <div class="container">
-        <span class="section-label">ASK BOX</span>
-        <h1 class="page-title">提问箱</h1>
+        <RevealText tag="span" class="section-label" text="ASK BOX" />
+        <RevealText tag="h1" class="page-title" text="提问箱" />
         <p class="page-desc">你可以在这里留下想说的话。</p>
       </div>
     </section>
@@ -44,7 +44,7 @@
 
           <!-- 输入行：+ 按钮 + 输入框 + 发送按钮 -->
           <div class="input-row">
-            <button class="id-btn" @click="openIdModal" title="设置 ID">
+            <button class="id-btn" v-magnetic @click="openIdModal" title="设置 ID">
               <span>+</span>
             </button>
             <input
@@ -56,6 +56,7 @@
             />
             <button
               class="send-btn"
+              v-magnetic
               :disabled="!content.trim()"
               @click="sendQuestion"
               title="发送"
@@ -77,7 +78,7 @@
     <section class="questions-section">
       <div class="container">
         <TransitionGroup name="q-list" tag="div" class="questions-grid">
-          <div v-for="q in questions" :key="q.id" class="question-card">
+          <div v-for="q in questions" :key="q.id" class="question-card" v-tilt>
             <!-- 卡片头部：ID + 时间 -->
             <div class="q-header">
               <span class="q-id">ID: {{ q.nickname || '匿名' }}</span>
@@ -105,6 +106,7 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
+import RevealText from '../components/RevealText.vue'
 
 // ===== 状态 =====
 const nickname = ref('')

@@ -51,6 +51,7 @@
       :class="{ expanded }"
       role="button"
       aria-label="打开导航"
+      v-magnetic="0.3"
       @click.stop="toggle"
     >
       <!-- 液态光泽层 -->
@@ -90,6 +91,7 @@ const CATALOG_ITEMS = [
   { label: '学习工程', icon: '⌬', route: 'Artwork' },
   { label: '图文笔记', icon: '✎', route: 'Article' },
   { label: '提问箱', icon: '◉', route: 'AskBox' },
+  { label: '协作 · 进度', icon: '⬡', route: 'Collab' },
 ]
 const NAVIGATE_DELAY = 250
 
@@ -105,6 +107,9 @@ const isItemActive = (item) => {
   if (item.route === 'Article') {
     return route.name === 'Article'
   }
+  if (item.route === 'Collab') {
+    return route.name === 'Collab'
+  }
   return route.name === 'Artwork' && route.query.category === item.label
 }
 
@@ -113,6 +118,8 @@ const handleItemClick = (item) => {
     selectRoute('AskBox')
   } else if (item.route === 'Article') {
     selectRoute('Article')
+  } else if (item.route === 'Collab') {
+    selectRoute('Collab')
   } else {
     selectRoute('Artwork', item.label)
   }
