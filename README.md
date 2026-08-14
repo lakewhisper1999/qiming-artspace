@@ -47,6 +47,20 @@ npm run dev
 
 本地开发时，`vite.config.js` 已配置代理，把 `/api`、`/uploads` 转发到 `http://localhost:8088`（需本地启动后端 [qiming-server](https://github.com/lakewhisper1999/qiming-server)）才能拉到实时数据。
 
+## 🧰 多仓库协同运行（本地开发）
+
+启明艺术空间由三个独立仓库组成，本地联调时通常需要**同时启动**：**前台**（qiming-artspace）、**后端**（qiming-server）、**管理后台**（qiming-admin）。
+
+| 仓库 | 类型 | 启动命令 | 默认端口 | 说明 |
+|------|------|----------|----------|------|
+| [qiming-artspace](https://github.com/lakewhisper1999/qiming-artspace) | Vue 3 前台 | `npm install && npm run dev` | 5173 | 艺术空间站点 |
+| [qiming-server](https://github.com/lakewhisper1999/qiming-server) | Spring Boot 后端 | 用 IDE（如 IntelliJ IDEA）运行 `QimingApplication` | 8088 | 接口 / 数据 |
+| [qiming-admin](https://github.com/lakewhisper1999/qiming-admin) | Vue 3 后台 | `npm install && npm run dev` | 5174 | 内容管理 |
+
+启动顺序建议：**先启动后端（8088）→ 再启动前台（5173）与后台（5174）**。前台 `vite.config.js` 已把 `/api`、`/uploads` 代理到 `http://localhost:8088`；后台同样代理到 8088，因此前后台都能直接调用本地后端实时数据。
+
+> 管理后台默认管理员账号：**`admin` / `admin123`**（首次启动后端时由 `DataInitializer` 自动写入数据库，登录后可修改）。
+
 ## 📦 静态数据导出（用于无后端部署）
 
 本项目可完全脱离后端部署：用导出脚本把数据库里的作品 / 图文 / 站点配置生成为静态 JSON，前端直接读取。
@@ -138,3 +152,27 @@ qiming-artspace/
 
 - 后端服务（接口/数据）：<https://github.com/lakewhisper1999/qiming-server>
 - 管理后台：<https://github.com/lakewhisper1999/qiming-admin>
+
+## 🙏 开源致谢
+
+「启明艺术空间」站在众多优秀开源项目的肩膀之上，特此致谢：
+
+**前端**
+- [Vue 3](https://github.com/vuejs/core) — 渐进式 JavaScript 框架
+- [Vite](https://github.com/vitejs/vite) — 极速前端构建工具
+- [Vue Router](https://github.com/vuejs/router) — Vue 官方路由
+- [Element Plus](https://github.com/element-plus/element-plus) — 管理后台 UI 组件库
+
+**后端**
+- [Spring Boot](https://github.com/spring-projects/spring-boot) — 后端应用框架
+- [MyBatis-Plus](https://github.com/baomidou/mybatis-plus) — 增强 ORM 框架
+- [jjwt](https://github.com/jwtk/jjwt) — JWT 鉴权
+- [MySQL](https://www.mysql.com/) — 关系型数据库
+
+**部署与基础设施**
+- [Cloudflare Pages](https://pages.cloudflare.com/) — 纯静态站点托管（零费用、自动部署）
+- [GitHub](https://github.com/) — 代码托管与协作（Issues / Projects / Actions）
+
+**特别感谢**
+- 开源博客项目 [NBlog](https://github.com/Naccl/NBlog) 在架构与实现思路上给予的学习参考与启发。
+- 所有为上述项目贡献代码与文档的开源开发者，以及一路给予启发的设计与艺术社区。
