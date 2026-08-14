@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-08-14T07:35:57.467Z",
+  "generatedAt": "2026-08-14T07:37:19.662Z",
   "repo": {
     "fullName": "lakewhisper1999/qiming-artspace",
     "htmlUrl": "https://github.com/lakewhisper1999/qiming-artspace",
     "defaultBranch": "main",
     "description": "启明艺术空间，一个设计作品展示平台",
-    "updatedAt": "2026-08-14T06:23:53Z"
+    "updatedAt": "2026-08-14T07:35:58Z"
   },
   "stats": {
     "total": 1,
@@ -18,12 +18,14 @@
       "title": "测试管理面板功能",
       "state": "open",
       "state_reason": null,
-      "labels": [],
+      "labels": [
+        "duplicate"
+      ],
       "user": "lakewhisper1999",
       "avatar": "https://avatars.githubusercontent.com/u/309355001?v=4",
       "comments": 0,
       "created_at": "2026-08-14T07:35:38Z",
-      "updated_at": "2026-08-14T07:35:38Z",
+      "updated_at": "2026-08-14T07:37:08Z",
       "closed_at": null,
       "html_url": "https://github.com/lakewhisper1999/qiming-artspace/issues/15",
       "body": "### 优先级\n\n🟢中\n\n### 涉及模块\n\n文档 / 协作流程\n\n### 预估工作量\n\nXS\n\n### 需求描述\n\n尝试解决协作问题，优化流程\n\n### 验收标准\n\n- [1] 流程全跑通无卡点\n- [2] 熟悉流程\n\n\n### 需求来源\n\n新建的对话/暂无\n\n### 补充材料\n\n_No response_"
